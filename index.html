@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  <title>MońkiGuessr</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png" />
+  <link rel="shortcut icon" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffd700">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MońkiGuessr">
+  <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Menu główne -->
+  <div id="main-menu">
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="floating-circle"></div>
+    <div class="menu-container">
+      <div class="golden-crown" id="golden-crown">👑</div>
+      <div class="menu-image-container">
+        <img src="zdjecie.jpeg" alt="MońkiGuessr Logo">
+      </div>
+      <h1 class="game-title">MońkiGuessr</h1>
+      <p class="game-subtitle">Najzajebistsza podróba Geoguessera!</p>
+      <div id="user-info" style="display: none;">
+        <div class="user-welcome">Witaj, <span id="current-username"></span>!</div>
+        <div class="user-stats">
+          <span>🏆 <span id="user-total-points">0</span> pkt</span>
+          <span>🎮 <span id="user-games-played">0</span> gier</span>
+        </div>
+        <div class="user-level-info">
+          <div id="player-level" class="player-level">
+            <div class="level-star">⭐</div>
+            <div class="level-number">1</div>
+          </div>
+          <div id="player-exp" class="player-exp">
+            <div class="exp-bar-wrapper">
+              <div class="exp-bar" style="width: 0%"></div>
+            </div>
+            <div class="exp-text">EXP: 0/100</div>
+          </div>
+        </div>
+      </div>
+      <button id="play-button" onclick="startGame()">🎮 Graj Solo</button>
+      <button id="multiplayer-button" onclick="openMultiplayer()">⚔️ Pojedynek</button>
+      <button id="friends-button" onclick="openFriends()">👥 Znajomi</button>
+      <button id="leaderboard-button" onclick="openLeaderboard()">🏆 Topka</button>
+      <button id="shop-button" onclick="openShop()">🛍️ Sklep</button>
+      <button id="settings-button" onclick="openSettings()" style="display: none;">⚙️ Ustawienia</button>
+      <button id="install-button" onclick="installApp()" style="display: none;">📱 Zainstaluj App</button>
+      <button id="logout-button" onclick="logout()" style="display: none;">🚪 Wyloguj</button>
+    </div>
+  </div>
+
+  <!-- Okno logowania/rejestracji -->
+  <div id="auth-modal" style="display: flex;">
+    <div class="auth-overlay"></div>
+    <div class="auth-container">
+      <div class="auth-header">
+        <h2 id="auth-title">🎮 Zaloguj się do MońkiGuessr</h2>
+      </div>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Logowanie</button>
+        <button class="auth-tab" onclick="switchAuthTab('register')">Rejestracja</button>
+      </div>
+      
+      <form id="auth-form">
+        <div class="input-group">
+          <label for="auth-username">Nazwa użytkownika:</label>
+          <input type="text" id="auth-username" name="username" required minlength="3" maxlength="20">
+        </div>
+        
+        <div class="input-group">
+          <label for="auth-password">Hasło:</label>
+          <input type="password" id="auth-password" name="password" required minlength="4">
+        </div>
+        
+        <div class="input-group" id="confirm-password-group" style="display: none;">
+          <label for="auth-confirm-password">Potwierdź hasło:</label>
+          <input type="password" id="auth-confirm-password" name="confirmPassword">
+        </div>
+        
+        <button type="submit" id="auth-submit" class="auth-button">🎯 Zaloguj się</button>
+      </form>
+      
+      <div id="auth-message" class="auth-message"></div>
+      
+      <div class="auth-footer">
+        <p id="auth-switch-text">Nie masz konta? <a href="#" onclick="switchAuthTab('register')">Zarejestruj się</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sklep -->
+  <div id="shop" style="display: none;">
+    <div class="shop-background">
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+    </div>
+    
+    <div class="shop-container">
+      <div class="shop-header">
+        <button class="shop-close-btn" onclick="closeShop()">✕</button>
+        <h1 class="shop-title">🛍️ Sklep z nagrodami</h1>
+        <div id="shop-points" class="shop-points">💰 0 punktów</div>
+      </div>
+      
+      <div class="shop-grid">
+        <!-- Kosmetyki -->
+        <div class="shop-category">
+          <h2 class="category-title">✨ Kosmetyki</h2>
+          
+          <div class="shop-item legendary">
+            <div class="item-icon">👑</div>
+            <div class="item-info">
+              <div class="item-name">Złota korona</div>
+              <div class="item-description">Luksusowa korona dla obywatelów Moniek</div>
+              <div class="item-price">💰 50,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Złota Korona', 50000, 'Teraz jesteś królem geografii!', 'cosmetic', 'goldenCrown')">Kup</button>
+          </div>
+          
+          <div class="shop-item epic">
+            <div class="item-icon">🎯</div>
+            <div class="item-info">
+              <div class="item-name">Zajebisty celownik</div>
+              <div class="item-description">Wykurwisty celownik, żeby się dobrze zgadywało</div>
+              <div class="item-price">💰 25,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Celownik Pro', 25000, 'Twoja precyzja wzrosła!', 'cosmetic', 'aimingReticle')">Kup</button>
+          </div>
+          
+          <div class="shop-item rare">
+            <div class="item-icon">🌟</div>
+            <div class="item-info">
+              <div class="item-name">Gwiezdny pin</div>
+              <div class="item-description">Błyszczący pin pokazujący twoją zajebistość</div>
+              <div class="item-price">💰 10,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Gwiezdny Pin', 10000, 'Świecisz jak gwiazda!', 'cosmetic', 'starPin')">Kup</button>
+          </div>
+        </div>
+        
+        <!-- Boosters -->
+        <div class="shop-category">
+          <h2 class="category-title">⚡ Wzmocnienia</h2>
+          
+          <div class="shop-item epic">
+            <div class="item-icon">⏱️</div>
+            <div class="item-info">
+              <div class="item-name">Dodatkowy czas</div>
+              <div class="item-description">+60 sekund do następnej rundy</div>
+              <div class="item-price">💰 15,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Dodatkowy Czas', 15000, 'Masz więcej czasu na myślenie!', 'booster', 'extraTime')">Kup</button>
+          </div>
+          
+          <div class="shop-item rare">
+            <div class="item-icon">🎲</div>
+            <div class="item-info">
+              <div class="item-name">Podwójne punkty</div>
+              <div class="item-description">2x punkty w następnej rundzie</div>
+              <div class="item-price">💰 20,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Podwójne Punkty', 20000, 'Następna runda będzie warta podwójnie!', 'booster', 'doublePoints')">Kup</button>
+          </div>
+          
+          <div class="shop-item common">
+            <div class="item-icon">🗺️</div>
+            <div class="item-info">
+              <div class="item-name">Podpowiedź</div>
+              <div class="item-description">Pokazuje kontynent lokalizacji</div>
+              <div class="item-price">💰 5,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Podpowiedź', 5000, 'Teraz wiesz na którym kontynencie jesteś!', 'booster', 'continentHint')">Kup</button>
+          </div>
+        </div>
+        
+        <!-- Kolekcje -->
+        <div class="shop-category">
+          <h2 class="category-title">🏆 Kolekcje</h2>
+          
+          <div class="shop-item legendary">
+            <div class="item-icon">🎖️</div>
+            <div class="item-info">
+              <div class="item-name">Medal Mieszkańca Moniek</div>
+              <div class="item-description">Ekskluzywny medal dla zajebistych graczy</div>
+              <div class="item-price">💰 100,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Medal Mistrza', 100000, 'Jesteś prawdziwym mistrzem!', 'cosmetic', 'masterMedal')">Kup</button>
+          </div>
+          
+          <div class="shop-item epic">
+            <div class="item-icon">📜</div>
+            <div class="item-info">
+              <div class="item-name">Świadectwo</div>
+              <div class="item-description">Oficjalne świadectwo wydane przez samego burmistrza</div>
+              <div class="item-price">💰 35,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Dyplom Geografa', 35000, 'Masz oficjalne potwierdzenie swoich umiejętności!', 'cosmetic', 'certificate')">Kup</button>
+          </div>
+          
+          <div class="shop-item rare">
+            <div class="item-icon">🏅</div>
+            <div class="item-info">
+              <div class="item-name">Brązowy medal</div>
+              <div class="item-description">Pierwszy krok do zajebistości</div>
+              <div class="item-price">💰 8,000</div>
+            </div>
+            <button class="buy-btn" onclick="buyItem('Brązowy Medal', 8000, 'Pierwszy medal w kolekcji!', 'cosmetic', 'bronzeMedal')">Kup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multiplayer -->
+  <div id="multiplayer" style="display: none;">
+    <div class="multiplayer-background">
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+    </div>
+    
+    <div class="multiplayer-container">
+      <div class="multiplayer-header">
+        <button class="multiplayer-close-btn" onclick="closeMultiplayer()">✕</button>
+        <h1 class="multiplayer-title">⚔️ Arena PvP</h1>
+        <div class="player-stats">
+          <div class="stat-item">🏆 <span id="mp-points">0</span></div>
+          <div class="stat-item">🎯 Wygrane: <span id="mp-wins">0</span></div>
+          <div class="stat-item">💀 Przegrane: <span id="mp-losses">0</span></div>
+        </div>
+      </div>
+      
+      <div class="multiplayer-modes">
+        <div class="mode-card legendary">
+          <div class="mode-icon">👑</div>
+          <div class="mode-title">Stwórz pokój</div>
+          <div class="mode-desc">Zostań hostem i czekaj na przeciwnika</div>
+          <button onclick="createRoom()">Stwórz pokój</button>
+        </div>
+        
+        <div class="mode-card epic" onclick="quickMatch()">
+          <div class="mode-icon">⚡</div>
+          <div class="mode-title">Szybka walka</div>
+          <div class="mode-desc">Znajdź losowego przeciwnika (bot)</div>
+        </div>
+        
+        <div class="mode-card rare">
+          <div class="mode-icon">🔑</div>
+          <div class="mode-title">Dołącz przez kod</div>
+          <input type="text" id="room-code" placeholder="Wpisz kod pokoju" maxlength="6">
+          <button onclick="joinRoom()">Dołącz</button>
+        </div>
+      </div>
+      
+      <div id="waiting-room" style="display: none;">
+        <div class="waiting-content">
+          <div class="room-info">
+            <h2>🏠 Pokój: <span id="current-room-code"></span></h2>
+            <div class="players-list">
+              <div class="player-slot filled">
+                <div class="player-avatar">👑</div>
+                <div class="player-name">Ty (Host)</div>
+              </div>
+              <div class="player-slot" id="opponent-slot">
+                <div class="player-avatar">👤</div>
+                <div class="player-name">Czekam na gracza...</div>
+              </div>
+            </div>
+          </div>
+          <div class="waiting-actions">
+            <button onclick="startMultiplayerGame()" id="start-game-btn" disabled>🎮 Rozpocznij walkę (tylko host)</button>
+            <button onclick="leaveRoom()" class="danger-btn">🚪 Opuść pokój</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Znajomi -->
+  <div id="friends" style="display: none;">
+    <div class="friends-background">
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+    </div>
+    
+    <div class="friends-container">
+      <div class="friends-header">
+        <button class="friends-close-btn" onclick="closeFriends()">✕</button>
+        <h1 class="friends-title">👥 Lista znajomych</h1>
+        <div class="friends-stats">
+          <div class="stat-item">👤 Znajomi: <span id="friends-count">0</span></div>
+          <div class="stat-item">📨 Zaproszenia: <span id="invitations-count">0</span></div>
+        </div>
+      </div>
+      
+      <div class="friends-tabs">
+        <button class="friends-tab active" onclick="switchFriendsTab('friends')">👥 Znajomi</button>
+        <button class="friends-tab" onclick="switchFriendsTab('add')">➕ Dodaj</button>
+        <button class="friends-tab" onclick="switchFriendsTab('invitations')">📨 Zaproszenia</button>
+      </div>
+      
+      <!-- Lista znajomych -->
+      <div id="friends-list" class="friends-content">
+        <div class="empty-state" id="empty-friends">
+          <div class="empty-icon">😔</div>
+          <div class="empty-title">Brak znajomych</div>
+          <div class="empty-desc">Dodaj znajomych aby walczyć z nimi!</div>
+        </div>
+        <div id="friends-grid" class="friends-grid" style="display: none;"></div>
+      </div>
+      
+      <!-- Dodawanie znajomych -->
+      <div id="add-friend" class="friends-content" style="display: none;">
+        <div class="add-friend-form">
+          <h2>🔍 Znajdź gracza</h2>
+          <div class="search-form">
+            <input type="text" id="friend-username" placeholder="Wpisz nick gracza..." maxlength="20">
+            <button onclick="searchUser()" id="search-btn">🔍 Szukaj</button>
+          </div>
+          <div id="search-results" class="search-results"></div>
+        </div>
+      </div>
+      
+      <!-- Zaproszenia do gry -->
+      <div id="invitations" class="friends-content" style="display: none;">
+        <div class="empty-state" id="empty-invitations">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Brak zaproszeń</div>
+          <div class="empty-desc">Zaproszenia do gry pojawią się tutaj</div>
+        </div>
+        <div id="invitations-grid" class="invitations-grid" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Topka graczy -->
+  <div id="leaderboard" style="display: none;">
+    <div class="leaderboard-background">
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+    </div>
+    
+    <div class="leaderboard-container">
+      <div class="leaderboard-header">
+        <button class="leaderboard-close-btn" onclick="closeLeaderboard()">✕</button>
+        <h1 class="leaderboard-title">🏆 Topka Graczy</h1>
+        <div class="leaderboard-subtitle">Najlepsi gracze według doświadczenia</div>
+      </div>
+      
+      <div id="leaderboard-list" class="leaderboard-list">
+        <!-- Lista graczy będzie załadowana przez JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Ustawienia -->
+  <div id="settings" style="display: none;">
+    <div class="settings-background">
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+      <div class="floating-circle"></div>
+    </div>
+    
+    <div class="settings-container">
+      <div class="settings-header">
+        <button class="settings-close-btn" onclick="closeSettings()">✕</button>
+        <h1 class="settings-title">⚙️ Ustawienia konta</h1>
+      </div>
+      
+      <div class="settings-tabs">
+        <button class="settings-tab active" onclick="switchSettingsTab('profile')">👤 Profil</button>
+        <button class="settings-tab" onclick="switchSettingsTab('stats')">📊 Statystyki</button>
+        <button class="settings-tab" onclick="switchSettingsTab('preferences')">🔧 Preferencje</button>
+      </div>
+      
+      <!-- Profil -->
+      <div id="profile-settings" class="settings-content">
+        <div class="profile-section">
+          <div class="profile-avatar-section">
+            <div class="current-avatar" onclick="triggerAvatarUpload()">
+              <img id="profile-avatar-img" src="zdjecie.jpeg" alt="Avatar">
+              <div class="avatar-overlay">
+                <div class="avatar-change-btn">
+                  📸 Zmień zdjęcie
+                </div>
+              </div>
+            </div>
+            <input type="file" id="avatar-upload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+          </div>
+          
+          <div class="profile-info-section">
+            <div class="info-group">
+              <label class="info-label">👤 Nazwa użytkownika:</label>
+              <div class="info-value" id="profile-username">-</div>
+            </div>
+            
+            <div class="info-group">
+              <label class="info-label">📅 Data rejestracji:</label>
+              <div class="info-value" id="profile-created">-</div>
+            </div>
+            
+            <div class="info-group">
+              <label class="info-label">🏆 Łączne punkty:</label>
+              <div class="info-value highlight" id="profile-total-points">0</div>
+            </div>
+            
+            <div class="info-group">
+              <label class="info-label">🎮 Rozegrane gry:</label>
+              <div class="info-value" id="profile-games-played">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Statystyki -->
+      <div id="stats-settings" class="settings-content" style="display: none;">
+        <div class="stats-grid">
+          <div class="stat-card legendary">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <div class="stat-title">Łączne punkty</div>
+              <div class="stat-value" id="stats-total-points">0</div>
+            </div>
+          </div>
+          
+          <div class="stat-card epic">
+            <div class="stat-icon">🎮</div>
+            <div class="stat-info">
+              <div class="stat-title">Rozegrane gry</div>
+              <div class="stat-value" id="stats-games-played">0</div>
+            </div>
+          </div>
+          
+          <div class="stat-card rare">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <div class="stat-title">Wygrane pojedynki</div>
+              <div class="stat-value" id="stats-wins">0</div>
+            </div>
+          </div>
+          
+          <div class="stat-card common">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+              <div class="stat-title">Przegrane pojedynki</div>
+              <div class="stat-value" id="stats-losses">0</div>
+            </div>
+          </div>
+          
+          <div class="stat-card epic">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+              <div class="stat-title">Współczynnik wygranych</div>
+              <div class="stat-value" id="stats-win-ratio">0%</div>
+            </div>
+          </div>
+          
+          <div class="stat-card legendary">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <div class="stat-title">Średnie punkty/grę</div>
+              <div class="stat-value" id="stats-avg-points">0</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="achievements-section">
+          <h3 class="achievements-title">🏅 Osiągnięcia</h3>
+          <div class="achievements-grid" id="achievements-list">
+            <!-- Achievements will be populated by JS -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Preferencje -->
+      <div id="preferences-settings" class="settings-content" style="display: none;">
+        <div class="preferences-section">
+          <div class="preference-group">
+            <h3 class="preference-title">🔊 Dźwięk</h3>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="sound-effects" checked>
+                <span class="checkmark"></span>
+                Efekty dźwiękowe
+              </label>
+            </div>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="background-music">
+                <span class="checkmark"></span>
+                Muzyka w tle
+              </label>
+            </div>
+          </div>
+          
+          <div class="preference-group">
+            <h3 class="preference-title">🎮 Rozgrywka</h3>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="auto-next-round" checked>
+                <span class="checkmark"></span>
+                Automatyczne przejście do następnej rundy
+              </label>
+            </div>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="show-distance" checked>
+                <span class="checkmark"></span>
+                Pokazuj odległość po zgadnięciu
+              </label>
+            </div>
+          </div>
+          
+          <div class="preference-group">
+            <h3 class="preference-title">👥 Społeczność</h3>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="friend-notifications" checked>
+                <span class="checkmark"></span>
+                Powiadomienia od znajomych
+              </label>
+            </div>
+            <div class="preference-item">
+              <label class="preference-label">
+                <input type="checkbox" id="game-invites" checked>
+                <span class="checkmark"></span>
+                Zaproszenia do gry
+              </label>
+            </div>
+          </div>
+          
+          <div class="preference-actions">
+            <button class="save-preferences-btn" onclick="savePreferences()">💾 Zapisz ustawienia</button>
+            <button class="reset-preferences-btn" onclick="resetPreferences()">🔄 Przywróć domyślne</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gra -->
+  <div id="game-container" style="display: none;">
+    <button id="menu-button" onclick="showMainMenu()">☰</button>
+    <div class="top-right-controls">
+      <div id="total-points">🏆 0</div>
+      <button id="shop-button-game" onclick="openShopFromGame()">🛍️</button>
+    </div>
+    <div id="street-view"></div>
+    <div id="guess-map">
+      <div class="star-pin-sticker" id="star-pin-sticker">🌟</div>
+    </div>
+
+    <button id="guess-button" onclick="makeGuess()">Zgadnij!</button>
+    <button id="next-button" onclick="nextRound()">Dalej ▶</button>
+    <div id="timer">02:00</div>
+    <div id="mp-scoreboard" style="display: none;">
+      <div class="scoreboard-player">
+        <div class="player-info">
+          <div class="player-name">Ty</div>
+          <div class="player-score">0 pkt</div>
+        </div>
+        <div class="player-status">🤔</div>
+      </div>
+      <div class="scoreboard-vs">VS</div>
+      <div class="scoreboard-player">
+        <div class="player-info">
+          <div class="player-name">Przeciwnik</div>
+          <div class="player-score">0 pkt</div>
+        </div>
+        <div class="player-status">🤔</div>
+      </div>
+    </div>
+    <div id="result-overlay"></div>
+    <div id="result-box"></div>
+    <div id="instruction">Kliknij na mapie, aby zaznaczyć swoją lokalizację!</div>
+  </div>
+
+  <!-- Credits na dole strony -->
+  <div class="credits">
+    <div class="credits-owner">
+      <img src="monki.png" alt="Herb miasta Moniek" class="herb-image">
+      <span class="owner-text">Burmistrz miasta Moniek</span>
+    </div>
+    <div class="studio-info">
+      <div class="studio-name">Rzetelne studio okiem Marboba i Vaxo</div>
+    </div>
+    <div class="error-warning">⚠️ Uwaga: mogą wystąpić błędy w grze</div>
+    <div class="copyright">© 2025 MońkiGuessr. Wszystkie prawa zastrzeżone.</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdkQl6u3sPiV5-yNrB-wXJBRQRP5cVZes&callback=initMaps&loading=async">
+  </script>
+</body>
+</html>
